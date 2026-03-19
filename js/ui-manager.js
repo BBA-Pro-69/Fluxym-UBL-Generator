@@ -9,7 +9,7 @@ const UIManager = {
     initHeader: () => {
         const header = document.getElementById('app-header');
         header.innerHTML = `
-            <img src="https://www.fluxym.com/public/uploads/2023/11/logo-fluxym-blanc.svg" alt="Fluxym Logo" style="max-width: 200px; margin-bottom: 2rem;">
+            <img src="./assets/fluxym_logo_2018_sansdescriptif_cmyk.png" alt="Fluxym Logo" style="max-width: 200px; margin-bottom: 2rem;">
             <h1>E-Invoicing Academy</h1>
             <p>Portail de génération de flux UBL pour validation et intégration plateformes (Esker, Basware...)</p>
         `;
