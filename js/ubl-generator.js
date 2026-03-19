@@ -66,90 +66,90 @@ const UBLGenerator = {
                 "#AAB#Pas d'escompte pour paiement anticipe."
             ];
 
-            // ==========================================
-            // FONCTION INTERNE : Générateur XML
-            // ==========================================
-            const buildXML = (numFacture, typeCode, isCreditNote = false, refOriginale = null, poNumber = null) => {
-                let xml = UBLTemplates.getHeader(numFacture, dateFactureXML, dateEcheanceXML, typeCode, profileId, notes, isCreditNote);
-                
-                if (isCreditNote && refOriginale) {
-                    xml += UBLTemplates.getBillingReference(refOriginale, dateFactureXML);
-                }
-                
-                xml += UBLTemplates.getSupplierParty(supplier);
-                xml += UBLTemplates.getCustomerParty(buyer);
-                xml += UBLTemplates.getPaymentTerms();
+        // ==========================================
+        // FONCTION INTERNE : Générateur XML Flexible
+        // ==========================================
+        const buildXML = (numFacture, typeCode, isCreditNote = false, refOriginale = null, poNumber = null) => {
+            let xml = UBLTemplates.getHeader(numFacture, dateFactureXML, dateEcheanceXML, typeCode, profileId, notes, isCreditNote);
+            
+            if (isCreditNote && refOriginale) {
+                xml += UBLTemplates.getBillingReference(refOriginale, dateFactureXML);
+            }
+            
+            // L'ordre UBL strict : Supplier -> Customer -> Payee (si besoin) -> Tax -> LegalMonetary -> Lines
+            xml += UBLTemplates.getSupplierParty(supplier);
+            xml += UBLTemplates.getCustomerParty(buyer);
 
-                if (usecase === "2") xml += UBLTemplates.getPayeeParty("99999999900001", "Stark Industries", "999999999");
-                if (usecase === "5") xml += UBLTemplates.getPayeeParty("00000000000001", "DUPONT Jean (Employe)", "000000000");
-                if (usecase === "7") xml += UBLTemplates.getPaymentMeans("48");
-                if (usecase === "8" && factor) xml += UBLTemplates.getPayeeParty(`${factor.siren}00001`, factor.name, factor.siren);
-                
-                // LIGNES ET TOTAUX
-                if (isCreditNote) {
-                    // AVOIR : Annulation ligne 3 (Quantité négative -1.00)
-                    xml += UBLTemplates.getTaxTotal("6.32", "1.26");
-                    xml += UBLTemplates.getLegalMonetaryTotal("6.32", "6.32", "7.58", "0.00", "7.58");
-                    xml += UBLTemplates.getInvoiceLine("1", "-1.00", "6.32", "Annulation 1 unite CNT50922", "6.32", true, {line: "000003", id: poNumber});
-                } 
-                else if (usecase === "A" || usecase === "B") {
-                    // FACTURE INITIALE CAS A/B (5 LIGNES)
-                    xml += UBLTemplates.getTaxTotal("4934.70", "986.94");
-                    xml += UBLTemplates.getLegalMonetaryTotal("4934.70", "4934.70", "5921.64", "0.00", "5921.64");
-                    xml += UBLTemplates.getInvoiceLine("1", "1.00", "0.38", "CNT01160", "0.38", false, {line: "000001", id: poNumber});
-                    xml += UBLTemplates.getInvoiceLine("2", "100.00", "136.00", "CNT31421", "1.36", false, {line: "000002", id: poNumber});
-                    xml += UBLTemplates.getInvoiceLine("3", "186.00", "1175.52", "CNT50922", "6.32", false, {line: "000003", id: poNumber});
-                    xml += UBLTemplates.getInvoiceLine("4", "30.00", "2113.20", "CNTUSB20", "70.44", false, {line: "000010", id: poNumber});
-                    xml += UBLTemplates.getInvoiceLine("5", "1110.00", "1509.60", "CNT00443", "1.36", false, {line: "000020", id: poNumber});
+            // Cas spécifiques Tiers Payeurs etc
+            if (usecase === "2") xml += UBLTemplates.getPayeeParty("99999999900001", "Stark Industries", "999999999");
+            if (usecase === "5") xml += UBLTemplates.getPayeeParty("00000000000001", "DUPONT Jean (Employe)", "000000000");
+            if (usecase === "7") xml += UBLTemplates.getPaymentMeans("48");
+            if (usecase === "8" && factor) xml += UBLTemplates.getPayeeParty(`${factor.siren}00001`, factor.name, factor.siren);
+            
+            // --- LOGIQUE DES LIGNES ET TOTAUX ---
+            if (isCreditNote) {
+                // AVOIR : Annulation de la ligne 3 (6.32€)
+                xml += UBLTemplates.getTaxTotal("6.32", "1.26");
+                xml += UBLTemplates.getLegalMonetaryTotal("6.32", "6.32", "7.58", "0.00", "7.58");
+                xml += UBLTemplates.getInvoiceLine("1", "-1.00", "6.32", "Annulation 1 unite CNT50922", "6.32", true, {line: "000003", id: poNumber});
+            } 
+            else if (usecase === "A" || usecase === "B") {
+                // FACTURE INITIALE DES CAS A et B (Les 5 lignes de Master Data)
+                xml += UBLTemplates.getTaxTotal("4934.70", "986.94");
+                xml += UBLTemplates.getLegalMonetaryTotal("4934.70", "4934.70", "5921.64", "0.00", "5921.64");
+                xml += UBLTemplates.getInvoiceLine("1", "1.00", "0.38", "CNT01160", "0.38", false, {line: "000001", id: poNumber});
+                xml += UBLTemplates.getInvoiceLine("2", "100.00", "136.00", "CNT31421", "1.36", false, {line: "000002", id: poNumber});
+                xml += UBLTemplates.getInvoiceLine("3", "186.00", "1175.52", "CNT50922", "6.32", false, {line: "000003", id: poNumber});
+                xml += UBLTemplates.getInvoiceLine("4", "30.00", "2113.20", "CNTUSB20", "70.44", false, {line: "000010", id: poNumber});
+                xml += UBLTemplates.getInvoiceLine("5", "1110.00", "1509.60", "CNT00443", "1.36", false, {line: "000020", id: poNumber});
+            }
+            else {
+                // AUTRES CAS SIMPLES
+                switch(usecase) {
+                    case "0":
+                    case "8":
+                        let itemName = usecase === "0" ? "Prestation standard sans commande" : "Prestation cedee au Factor";
+                        xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
+                        xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "0.00", "1200.00");
+                        xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", itemName, "1000.00");
+                        break;
+                    case "1":
+                        xml += UBLTemplates.getTaxTotal("3250.00", "650.00");
+                        xml += UBLTemplates.getLegalMonetaryTotal("3250.00", "3250.00", "3900.00", "0.00", "3900.00");
+                        xml += UBLTemplates.getInvoiceLine("1", "10.00", "1500.00", "Licences logicielles", "150.00", false, {line: "10", id: "PO-1001"});
+                        xml += UBLTemplates.getInvoiceLine("2", "2.00", "1750.00", "Jours de consulting Fluxym", "875.00", false, {line: "20", id: "PO-1002"});
+                        break;
+                    case "2":
+                    case "5":
+                    case "7":
+                        let itemDesc = "Prestation";
+                        if(usecase==="5") itemDesc = "Note de Frais (Billet Train)";
+                        if(usecase==="7") itemDesc = "Achat Materiel (Carte Logee)";
+                        xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
+                        xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "1200.00", "0.00");
+                        xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", itemDesc, "1000.00");
+                        break;
+                    case "3":
+                        xml += UBLTemplates.getTaxTotal("500.00", "100.00");
+                        xml += UBLTemplates.getLegalMonetaryTotal("500.00", "500.00", "600.00", "0.00", "600.00");
+                        xml += UBLTemplates.getInvoiceLine("1", "1.00", "500.00", "Acompte 50% sur projet", "500.00");
+                        break;
+                    case "4":
+                        xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
+                        xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "500.00", "700.00");
+                        xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", "Materiel avec subvention 500e", "1000.00");
+                        break;
+                    default:
+                        xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
+                        xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "0.00", "1200.00");
+                        xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", "Prestation generique", "1000.00");
+                        break;
                 }
-                else {
-                    // AUTRES CAS
-                    switch(usecase) {
-                        case "0":
-                        case "8":
-                            let itemName = usecase === "0" ? "Prestation standard sans commande" : "Prestation cedee au Factor";
-                            xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
-                            xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "0.00", "1200.00");
-                            xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", itemName, "1000.00");
-                            break;
-                        case "1":
-                            xml += UBLTemplates.getTaxTotal("3250.00", "650.00");
-                            xml += UBLTemplates.getLegalMonetaryTotal("3250.00", "3250.00", "3900.00", "0.00", "3900.00");
-                            xml += UBLTemplates.getInvoiceLine("1", "10.00", "1500.00", "Licences logicielles", "150.00", false, {line: "10", id: "PO-1001"});
-                            xml += UBLTemplates.getInvoiceLine("2", "2.00", "1750.00", "Jours de consulting Fluxym", "875.00", false, {line: "20", id: "PO-1002"});
-                            break;
-                        case "2":
-                        case "5":
-                        case "7":
-                            let itemDesc = "Prestation";
-                            if(usecase==="5") itemDesc = "Note de Frais (Billet Train)";
-                            if(usecase==="7") itemDesc = "Achat Materiel (Carte Logee)";
-                            xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
-                            xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "1200.00", "0.00");
-                            xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", itemDesc, "1000.00");
-                            break;
-                        case "3":
-                            xml += UBLTemplates.getTaxTotal("500.00", "100.00");
-                            xml += UBLTemplates.getLegalMonetaryTotal("500.00", "500.00", "600.00", "0.00", "600.00");
-                            xml += UBLTemplates.getInvoiceLine("1", "1.00", "500.00", "Acompte 50% sur projet", "500.00");
-                            break;
-                        case "4":
-                            xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
-                            xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "500.00", "700.00");
-                            xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", "Materiel avec subvention 500e", "1000.00");
-                            break;
-                        default:
-                            xml += UBLTemplates.getTaxTotal("1000.00", "200.00");
-                            xml += UBLTemplates.getLegalMonetaryTotal("1000.00", "1000.00", "1200.00", "0.00", "1200.00");
-                            xml += UBLTemplates.getInvoiceLine("1", "1.00", "1000.00", "Prestation generique", "1000.00");
-                            break;
-                    }
-                }
-                
-                xml += UBLTemplates.getFooter(isCreditNote);
-                return xml;
-            };
-
+            }
+            
+            xml += UBLTemplates.getFooter(isCreditNote);
+            return xml;
+        };
             // ==========================================
             // 4. ROUTAGE : ZIP vs FICHIER SIMPLE
             // ==========================================

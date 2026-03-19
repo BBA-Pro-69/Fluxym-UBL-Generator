@@ -1,93 +1,92 @@
 {
-    
-  "A": {
-    "badge": "Cas A / Erreur",
-    "title": "Facture Rejetée (Erreur technique/métier)",
-    "desc1": "<strong>Scénario :</strong> La facture initiale est rejetée (par le PPF, la PDP ou l'Acheteur). Le fournisseur doit émettre une nouvelle facture ou un avoir.",
-    "desc2": "<strong>Pack généré :</strong> Fichier Master Data (CSV) + Facture initiale avec erreur + Avoir d'annulation (Credit Note 381).",
-    "info": "Génère une archive .ZIP contenant les Master Datas Esker, la facture 380 et l'avoir 381 lié.",
+  "0": {
+    "badge": "Cas A1 / Cadre B1",
+    "title": "Standard B2B domestique",
+    "desc1": "<strong>Scénario :</strong> C'est le cas le plus courant : une entreprise française vend un bien ou un service à une autre entreprise française. Le vendeur émet une facture classique que l'acheteur doit régler à échéance.",
+    "desc2": "<strong>Particularités :</strong> Transaction simple : un vendeur, un acheteur, une facture, un paiement direct. Le montant Net à payer est égal au montant total TTC. C'est la facture de référence pour comprendre tous les autres cas.",
+    "info": "Type 380 (Facture commerciale). Cadre B1 (biens) ou S1 (services). Vendeur et Acheteur classiques. Message UBL : &lt;Invoice&gt;.",
     "target": "esker",
-    "label": "Cas A : Rejet et Annulation"
-  },
-  "B": {
-    "badge": "Cas B / Avoir",
-    "title": "Avoir Commercial",
-    "desc1": "<strong>Scénario :</strong> Annulation ou remboursement partiel/total d'une facture déjà émise et acceptée.",
-    "desc2": "<strong>Particularité XML :</strong> L'Avoir (CreditNote) doit impérativement contenir la balise <cac:BillingReference> pointant vers le numéro de la facture d'origine.",
-    "info": "Génère une archive .ZIP contenant la facture d'origine 380 et l'Avoir 381 (Credit Note) avec la référence croisée.",
-    "target": "esker",
-    "label": "Cas B : Émission d'un Avoir (Credit Note)"
-  },
-    "0": {
-    "badge": "Cas A1 / Cas 0",
-    "title": "Le Flux Domestique Standard",
-    "desc1": "<strong>Scénario :</strong> C'est la facture de référence (B2B domestique). Le fournisseur ACME émet une facture simple à son client KREAMOB, sans commande préalable.",
-    "desc2": "<strong>Circuit Y-Model :</strong> Fournisseur > PDP Fournisseur > PDP Acheteur > Acheteur.",
-    "info": "Facture standard (Code 380) - 1 ligne article - TVA 20% - Sans référence commande - Profil S1.",
-    "target": "esker",
-    "label": "Cas 0 : Standard (Facture simple sans commande)"
+    "label": "Cas 0 : Standard B2B domestique"
   },
   "1": {
     "badge": "Cas A1 - Multi",
-    "title": "Multi-Commande / Multi-Livraison",
-    "desc1": "<strong>Scénario :</strong> Le fournisseur regroupe plusieurs bons de commande (PO) sur une seule et même facture.",
-    "desc2": "<strong>Impact Intégration :</strong> Ce fichier est crucial pour valider le 3-Way Match. La solution devra réconcilier les lignes de la facture XML avec les différentes commandes (PO-1001 et PO-1002) et livraisons (BL-001, BL-002) dans l'ERP.",
-    "info": "Facture (Code 380) - 2 lignes d'articles - Pointage vers 2 numéros de commandes via &lt;cac:OrderLineReference&gt; et de livraison via &lt;cac:DespatchLineReference&gt; - Profil B1.",
+    "title": "Multi-commande / 3-Way Match",
+    "desc1": "<strong>Scénario :</strong> Une entreprise passe plusieurs bons de commande auprès d'un même fournisseur. Ce dernier regroupe tout sur une seule et même facture.",
+    "desc2": "<strong>Particularités :</strong> Le rapprochement facture/commande/réception (3-way match) se fait ligne par ligne dans la solution P2P de l'acheteur.",
+    "info": "Type 380. Les numéros de commande sont précisés au niveau des lignes via la balise &lt;cac:OrderLineReference&gt;.",
     "target": "esker",
-    "label": "Cas 1 : Multi-commande / Multi-livraison"
+    "label": "Cas 1 : Multi-commande (3-Way Match)"
   },
   "2": {
     "badge": "Cas A1 / Cadre B2",
-    "title": "Tiers Payeur",
-    "desc1": "<strong>Scénario :</strong> Facture déjà payée intégralement par un tiers (ex: Stark Industries) avant même l'émission à l'acheteur final (KREAMOB).",
-    "desc2": "<strong>Particularité XML :</strong> La facture est émise pour comptabilisation, mais l'Acheteur n'a rien à payer (PayableAmount = 0).",
-    "info": "Facture standard (Code 380) - Profil B2. Le montant prépayé (PrepaidAmount) est égal au TTC. Ajout du bloc &lt;cac:PayeeParty&gt; (Stark Industries).",
+    "title": "Tiers payeur / Facture déjà payée",
+    "desc1": "<strong>Scénario :</strong> L'acheteur ou un tiers a déjà réglé la facture au moment de son émission. C'est très fréquent pour les paiements comptants ou les achats par carte sur internet.",
+    "desc2": "<strong>Particularités :</strong> Le cadre de facturation bascule en B2/S2 (facture déjà payée). Le montant net à payer est de 0€ car le montant prépayé couvre l'intégralité de la facture.",
+    "info": "Type 380. Cadre B2/S2. Montant à payer (PayableAmount) = 0. Ajout du bloc &lt;cac:PayeeParty&gt;.",
     "target": "esker",
     "label": "Cas 2 : Tiers Payeur (Déjà payée)"
   },
   "3": {
     "badge": "Cas A1 / Code 386",
-    "title": "Facture d'Acompte",
-    "desc1": "<strong>Scénario :</strong> Le fournisseur demande le paiement d'un acompte avant de réaliser la prestation ou de livrer la marchandise.",
-    "desc2": "<strong>Particularité XML :</strong> Le type de facture change pour indiquer qu'il s'agit d'un acompte. Le ProfileID est A1.",
-    "info": "Facture d'acompte (Code 386) - Profil A1. Montant partiel facturé avant livraison.",
+    "title": "Facture d'acompte",
+    "desc1": "<strong>Scénario :</strong> Avant la livraison complète, le vendeur exige un acompte. Il émet une facture spécifique qui représente une avance financière.",
+    "desc2": "<strong>Particularités :</strong> Attention, la TVA est exigible immédiatement sur cet acompte. La facture définitive ultérieure viendra déduire ce montant.",
+    "info": "Type 386 (Facture d'acompte au lieu de 380). Montant partiel facturé avant livraison.",
     "target": "esker",
-    "label": "Cas 3 : Acompte"
+    "label": "Cas 3 : Facture d'acompte (Code 386)"
   },
   "4": {
     "badge": "Cas A1",
-    "title": "Prise en charge partielle (Subvention/Assurance)",
-    "desc1": "<strong>Scénario :</strong> Une partie de la facture est prise en charge par un tiers (ex: assurance, subvention Stark Industries). L'acheteur (KREAMOB) ne paie que le reste à charge.",
-    "desc2": "<strong>Particularité XML :</strong> Le montant total à payer par l'acheteur est inférieur au montant TTC de la facture.",
-    "info": "Facture standard (Code 380). Le AllowanceTotalAmount (ou PrepaidAmount) contient le montant pris en charge par le tiers. Le PayableAmount est le reste à charge.",
+    "title": "Prise en charge partielle (Assurance)",
+    "desc1": "<strong>Scénario :</strong> Une facture est payée en partie par un tiers (ex: assureur, subvention). Le vendeur émet une seule facture à l'acheteur.",
+    "desc2": "<strong>Particularités :</strong> L'acheteur (le client final) ne paie que le reste à charge (la franchise).",
+    "info": "Type 380. Le champ PrepaidAmount contient le montant pris en charge par le tiers. Le PayableAmount contient le reste à charge.",
     "target": "esker",
-    "label": "Cas 4 : Prise en charge partielle"
+    "label": "Cas 4 : Prise en charge partielle (Subvention/Assurance)"
   },
   "5": {
     "badge": "Cadre S2",
-    "title": "Note de Frais (Payée par le collaborateur)",
-    "desc1": "<strong>Scénario :</strong> Un collaborateur a payé une dépense professionnelle avec ses fonds personnels. L'entreprise doit enregistrer la facture pour récupérer la TVA et rembourser le collaborateur.",
-    "desc2": "<strong>Particularité XML :</strong> C'est une facture B2B normale, mais qui a déjà été acquittée par le collaborateur au moment de l'achat.",
-    "info": "Facture (Code 380) - Profil S2. Le PrepaidAmount est égal au TTC, PayableAmount = 0. Le PayeeParty est le collaborateur (pour remboursement par son entreprise).",
+    "title": "Note de frais (Payée par le collaborateur)",
+    "desc1": "<strong>Scénario :</strong> Un salarié avance des frais professionnels (train, hôtel). La facture est émise au nom de l'entreprise pour récupération de la TVA.",
+    "desc2": "<strong>Particularités :</strong> La facture B2B est considérée comme déjà payée. Le collaborateur agit comme \"tiers payeur\" et l'entreprise devra le rembourser en interne.",
+    "info": "Type 380. Cadre S2. PrepaidAmount = TTC, PayableAmount = 0. Le PayeeParty est le collaborateur.",
     "target": "esker",
-    "label": "Cas 5 : Note de frais (Déjà payée)"
+    "label": "Cas 5 : Note de frais payée par le collaborateur"
   },
   "7": {
     "badge": "Cadre B2",
-    "title": "Carte Logée (Carte d'achat entreprise)",
-    "desc1": "<strong>Scénario :</strong> Achat B2B réglé immédiatement via une carte d'achat entreprise (carte logée / virtual card).",
-    "desc2": "<strong>Particularité XML :</strong> La facture est émise pour la comptabilité, mais elle est déjà payée via le moyen de paiement de l'entreprise.",
-    "info": "Facture (Code 380) - Profil B2. Le PaymentMeansCode indique le paiement par carte (ex: 48). PrepaidAmount = TTC, PayableAmount = 0.",
+    "title": "Carte logée (Achat déjà réglé)",
+    "desc1": "<strong>Scénario :</strong> Un achat B2B est réglé immédiatement via une carte d'achat entreprise (carte logée ou virtual card).",
+    "desc2": "<strong>Particularités :</strong> La facture est récupérée pour la comptabilité et la TVA, mais elle a déjà été payée via le moyen de paiement bancaire de l'entreprise.",
+    "info": "Type 380. Cadre B2. Le PaymentMeansCode indique le paiement par carte (ex: 48). PayableAmount = 0.",
     "target": "esker",
-    "label": "Cas 7 : Carte logée (Déjà payée)"
+    "label": "Cas 7 : Carte logée (Achat déjà réglé)"
   },
   "8": {
-    "badge": "Cas A3 / Cas 8",
-    "title": "L'Affacturage (Factor)",
-    "desc1": "<strong>Scénario :</strong> Le fournisseur cède sa créance à un organisme d'affacturage (Factor). C'est le Factor (ici Esker) qui se charge de recouvrer la créance auprès de l'acheteur.",
-    "desc2": "<strong>Particularité XML :</strong> La facture mentionne explicitement un tiers (le Factor) à qui le paiement doit être adressé.",
-    "info": "Code 393 (Facture d'affacturage) - Ajout du bloc <cac:PayeeParty> indiquant le paiement à l'ordre du Factor.",
+    "badge": "Cas A3 / Code 393",
+    "title": "Affacturage (Créance cédée)",
+    "desc1": "<strong>Scénario :</strong> Le vendeur cède sa créance à un organisme financier (Factor) pour obtenir de la trésorerie immédiate. C'est le Factor qui se chargera de recouvrer l'argent auprès de l'acheteur.",
+    "desc2": "<strong>Particularités :</strong> La facture doit obligatoirement mentionner ce tiers financier à qui le paiement final doit être adressé.",
+    "info": "Type 393 (Facture affacturée au lieu de 380). Le bloc &lt;cac:PayeeParty&gt; indique les coordonnées du Factor.",
     "target": "esker",
-    "label": "Cas 8 : Affacturage (Créance cédée)"
+    "label": "Cas 8 : Affacturage (Créance cédée, Code 393)"
+  },
+  "A": {
+    "badge": "Cas A / Rejet",
+    "title": "Facture Rejetée",
+    "desc1": "<strong>Scénario :</strong> La facture (transmise via la plateforme) contient une erreur métier. Elle est rejetée. Le vendeur doit émettre une nouvelle facture corrigée.",
+    "desc2": "<strong>Action générée :</strong> Ce cas de test génère un lot de fichiers (ZIP) pour simuler ce scénario complet d'annulation dans un outil comme Esker.",
+    "info": "Génère un ZIP : Fichiers Master Data (Headers + Items) + Facture d'origine en erreur + Avoir d'annulation (Credit Note).",
+    "target": "esker",
+    "label": "Cas A : Rejet et nouvelle émission"
+  },
+  "B": {
+    "badge": "Cas B / Code 381",
+    "title": "Avoir commercial (Credit Note)",
+    "desc1": "<strong>Scénario :</strong> Suite à un litige (retour marchandise, remise oubliée), le vendeur émet un avoir pour annuler tout ou partie d'une facture déjà émise et acceptée.",
+    "desc2": "<strong>Particularités :</strong> L'avoir est un message XML radicalement différent d'une facture. Il doit obligatoirement pointer vers la facture d'origine qu'il annule.",
+    "info": "Type 381 (Avoir). Message UBL : &lt;CreditNote&gt;. Le bloc &lt;cac:BillingReference&gt; pointe vers la facture d'origine. Génère un ZIP complet de test.",
+    "target": "esker",
+    "label": "Cas B : Émission d'un Avoir (Credit Note)"
   }
 }
