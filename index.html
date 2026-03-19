@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur UBL Multi-Plateformes | Fluxym</title>
+    <link rel="icon" href="./assets/favicon-Fluxym-V2.png" sizes="32x32" />
+    
+    <!-- Polices Officielles Fluxym -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Miriam+Libre:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Chargement de nos modules CSS (Design) -->
+    <link rel="stylesheet" href="./css/main.css">
+    <link rel="stylesheet" href="./css/components.css">
+</head>
+<body>
+
+    <!-- Header Injecté par JS -->
+    <header id="app-header"></header>
+
+    <div class="container">
+        
+        <!-- SECTION 1 : THÉORIE (Pédagogie) -->
+        <div class="card pedagogy-card">
+            <div class="card-header">
+                <h2><div class="icon-wrapper">📚</div> Fiche Pédagogique</h2>
+            </div>
+            
+            <!-- C'est ici que ui-manager.js injectera le texte du fichier pedagogy.json -->
+            <div id="theory-content">
+                <div class="loader">Chargement des données...</div>
+            </div>
+        </div>
+
+        <!-- SECTION 2 : PRATIQUE (Générateur) -->
+        <div class="card generator-card">
+            <div class="card-header">
+                <h2><div class="icon-wrapper">⚙️</div> Générateur de Flux</h2>
+            </div>
+            
+            <div class="form-group">
+                <label for="trigramme">Consultant (Trigramme)</label>
+                <input type="text" id="trigramme" placeholder="Ex: BBA" maxlength="3" value="BBA">
+            </div>
+
+            <!-- Ajout du choix de la plateforme cible (Esker, Basware, etc.) -->
+            <div class="form-group">
+                <label for="target-platform">Plateforme Cible</label>
+                <select id="target-platform">
+                    <option value="esker">Esker Synergy</option>
+                    <option value="basware">Basware</option>
+                    <!-- Evolutif pour d'autres collègues -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="usecase">Cas d'Usage FNFE</label>
+                <!-- Ce select sera peuplé dynamiquement par JS -->
+                <select id="usecase"></select>
+            </div>
+
+            <!-- Accordéon pour les paramètres avancés (Entreprises) -->
+            <details class="advanced-settings">
+                <summary>Paramètres Avancés (Tiers)</summary>
+                <div class="settings-content" id="companies-settings">
+                    <!-- ui-manager.js injectera les inputs pour changer l'expéditeur/destinataire -->
+                    <div class="loader-small">Chargement...</div>
+                </div>
+            </details>
+
+            <div class="info-box" id="info-box">
+                <h4>Paramètres injectés :</h4>
+                <p id="info-text">Sélectionnez un cas...</p>
+            </div>
+
+            <button class="btn btn-primary" id="btn-generate">📥 Télécharger la facture UBL</button>
+            
+            <div id="success-msg" class="success-msg hidden">
+                <span class="icon">✅</span>
+                <p>Génération réussie ! Le fichier a été téléchargé.</p>
+                <strong id="filename-display"></strong>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Chargement de nos modules de Données -->
+    <script src="./data/ubl-templates.js"></script>
+    
+    <!-- Chargement de nos modules Logiques (JS) -->
+    <script src="./js/ui-manager.js"></script>
+    <script src="./js/ubl-generator.js"></script>
+    <script src="./js/app.js"></script>
+
+</body>
+</html>

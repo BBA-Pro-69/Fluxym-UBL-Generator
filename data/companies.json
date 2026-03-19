@@ -1,0 +1,53 @@
+{
+  "suppliers": [
+    {
+      "id": "acme_fr",
+      "name": "ACME FR",
+      "legalName": "ACME FR LEGAL",
+      "siren": "331518498",
+      "vatNumber": "FR53331518498",
+      "address": {
+        "street": "12 Rue de la Republique",
+        "city": "LYON",
+        "zip": "69009",
+        "country": "FR"
+      }
+    },
+    {
+      "id": "fluxym_fr",
+      "name": "FLUXYM",
+      "legalName": "FLUXYM SAS",
+      "siren": "442654927",
+      "vatNumber": "FR66442654927",
+      "address": {
+        "street": "3 rue de la Faisanderie",
+        "city": "PARIS",
+        "zip": "75116",
+        "country": "FR"
+      }
+    }
+  ],
+  "buyers": [
+    {
+      "id": "kreamob",
+      "name": "KREAMOB",
+      "legalName": "KREAMOB Legal entity",
+      "siren": "333191120",
+      "nic": "28662",
+      "vatNumber": "FR12333191120",
+      "address": {
+        "street": "10 Avenue du Marechal Foch",
+        "city": "VILLEFRANCHE-SUR-MER",
+        "zip": "06230",
+        "country": "FR"
+      }
+    }
+  ],
+  "factors": [
+    {
+      "id": "esker_factor",
+      "name": "ESKER FACTOR",
+      "siren": "999999999"
+    }
+  ]
+}
