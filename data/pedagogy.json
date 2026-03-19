@@ -6,21 +6,66 @@
     "desc2": "<strong>Circuit Y-Model :</strong> Fournisseur > PDP Fournisseur > PDP Acheteur > Acheteur.",
     "info": "Facture standard (Code 380) - 1 ligne article - TVA 20% - Sans référence commande - Profil S1.",
     "target": "esker",
-    "label": "Cas 0 : Standard (B2B Domestique)"
+    "label": "Cas 0 : Standard (Facture simple sans commande)"
   },
   "1": {
     "badge": "Cas A1 - Multi",
-    "title": "Multi-Commande / 3-Way Match",
+    "title": "Multi-Commande / Multi-Livraison",
     "desc1": "<strong>Scénario :</strong> Le fournisseur regroupe plusieurs bons de commande (PO) sur une seule et même facture.",
-    "desc2": "<strong>Impact Intégration :</strong> Ce fichier est crucial pour valider le 3-Way Match. La solution devra réconcilier les lignes de la facture XML avec les différentes commandes dans l'ERP du client.",
-    "info": "Facture (Code 380) - 3 lignes d'articles - Pointage vers 2 numéros de commandes via <cac:OrderLineReference>.",
+    "desc2": "<strong>Impact Intégration :</strong> Ce fichier est crucial pour valider le 3-Way Match. La solution devra réconcilier les lignes de la facture XML avec les différentes commandes (PO-1001 et PO-1002) et livraisons (BL-001, BL-002) dans l'ERP.",
+    "info": "Facture (Code 380) - 2 lignes d'articles - Pointage vers 2 numéros de commandes via &lt;cac:OrderLineReference&gt; et de livraison via &lt;cac:DespatchLineReference&gt; - Profil B1.",
     "target": "esker",
-    "label": "Cas 1 : Multi-commande (3-Way Match)"
+    "label": "Cas 1 : Multi-commande / Multi-livraison"
+  },
+  "2": {
+    "badge": "Cas A1 / Cadre B2",
+    "title": "Tiers Payeur",
+    "desc1": "<strong>Scénario :</strong> Facture déjà payée intégralement par un tiers (ex: Stark Industries) avant même l'émission à l'acheteur final (KREAMOB).",
+    "desc2": "<strong>Particularité XML :</strong> La facture est émise pour comptabilisation, mais l'Acheteur n'a rien à payer (PayableAmount = 0).",
+    "info": "Facture standard (Code 380) - Profil B2. Le montant prépayé (PrepaidAmount) est égal au TTC. Ajout du bloc &lt;cac:PayeeParty&gt; (Stark Industries).",
+    "target": "esker",
+    "label": "Cas 2 : Tiers Payeur (Déjà payée)"
+  },
+  "3": {
+    "badge": "Cas A1 / Code 386",
+    "title": "Facture d'Acompte",
+    "desc1": "<strong>Scénario :</strong> Le fournisseur demande le paiement d'un acompte avant de réaliser la prestation ou de livrer la marchandise.",
+    "desc2": "<strong>Particularité XML :</strong> Le type de facture change pour indiquer qu'il s'agit d'un acompte. Le ProfileID est A1.",
+    "info": "Facture d'acompte (Code 386) - Profil A1. Montant partiel facturé avant livraison.",
+    "target": "esker",
+    "label": "Cas 3 : Acompte"
+  },
+  "4": {
+    "badge": "Cas A1",
+    "title": "Prise en charge partielle (Subvention/Assurance)",
+    "desc1": "<strong>Scénario :</strong> Une partie de la facture est prise en charge par un tiers (ex: assurance, subvention Stark Industries). L'acheteur (KREAMOB) ne paie que le reste à charge.",
+    "desc2": "<strong>Particularité XML :</strong> Le montant total à payer par l'acheteur est inférieur au montant TTC de la facture.",
+    "info": "Facture standard (Code 380). Le AllowanceTotalAmount (ou PrepaidAmount) contient le montant pris en charge par le tiers. Le PayableAmount est le reste à charge.",
+    "target": "esker",
+    "label": "Cas 4 : Prise en charge partielle"
+  },
+  "5": {
+    "badge": "Cadre S2",
+    "title": "Note de Frais (Payée par le collaborateur)",
+    "desc1": "<strong>Scénario :</strong> Un collaborateur a payé une dépense professionnelle avec ses fonds personnels. L'entreprise doit enregistrer la facture pour récupérer la TVA et rembourser le collaborateur.",
+    "desc2": "<strong>Particularité XML :</strong> C'est une facture B2B normale, mais qui a déjà été acquittée par le collaborateur au moment de l'achat.",
+    "info": "Facture (Code 380) - Profil S2. Le PrepaidAmount est égal au TTC, PayableAmount = 0. Le PayeeParty est le collaborateur (pour remboursement par son entreprise).",
+    "target": "esker",
+    "label": "Cas 5 : Note de frais (Déjà payée)"
+  },
+  "7": {
+    "badge": "Cadre B2",
+    "title": "Carte Logée (Carte d'achat entreprise)",
+    "desc1": "<strong>Scénario :</strong> Achat B2B réglé immédiatement via une carte d'achat entreprise (carte logée / virtual card).",
+    "desc2": "<strong>Particularité XML :</strong> La facture est émise pour la comptabilité, mais elle est déjà payée via le moyen de paiement de l'entreprise.",
+    "info": "Facture (Code 380) - Profil B2. Le PaymentMeansCode indique le paiement par carte (ex: 48). PrepaidAmount = TTC, PayableAmount = 0.",
+    "target": "esker",
+    "label": "Cas 7 : Carte logée (Déjà payée)"
   },
   "8": {
     "badge": "Cas A3 / Cas 8",
     "title": "L'Affacturage (Factor)",
-    "desc1": "<strong>Scénario :</strong> Le fournisseur cède sa créance à un organisme d'affacturage. C'est le Factor qui se charge de recouvrer la créance auprès de l'acheteur.",
+    "desc1": "<strong>Scénario :</strong> Le fournisseur cède sa créance à un organisme d'affacturage (Factor). C'est le Factor (ici Esker) qui se charge de recouvrer la créance auprès de l'acheteur.",
     "desc2": "<strong>Particularité XML :</strong> La facture mentionne explicitement un tiers (le Factor) à qui le paiement doit être adressé.",
     "info": "Code 393 (Facture d'affacturage) - Ajout du bloc <cac:PayeeParty> indiquant le paiement à l'ordre du Factor.",
     "target": "esker",
