@@ -1,24 +1,38 @@
 /**
- * UBL-TEMPLATES.JS - La bibliothèque de briques XML
+ * UBL-TEMPLATES.JS - La bibliothèque de briques XML et CSV (Format strict Esker)
  */
+
+const csvQuote = (val) => {
+    if (val === null || val === undefined) return '""';
+    const str = String(val);
+    return `"${str.replace(/"/g, '""')}"`;
+};
 
 const UBLTemplates = {
 
-    // 1. En-tête dynamique selon le cas (ProfileID, InvoiceTypeCode, Notes)
-    getHeader: (numeroFacture, dateFacture, dateEcheance, invoiceTypeCode, profileId, notes) => `<?xml version="1.0" encoding="UTF-8"?>
-<Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2" xmlns:udt="urn:oasis:names:specification:ubl:schema:xsd:UnqualifiedDataTypes-2">
+    // 1. En-tête (Invoice ou CreditNote) avec TOUS les espaces de noms
+    getHeader: (numeroFacture, dateFacture, dateEcheance, invoiceTypeCode, profileId, notes, isCreditNote = false) => `<?xml version="1.0" encoding="UTF-8"?>
+<${isCreditNote ? 'CreditNote' : 'Invoice'} xmlns="urn:oasis:names:specification:ubl:schema:xsd:${isCreditNote ? 'CreditNote' : 'Invoice'}-2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2" xmlns:qdt="urn:oasis:names:specification:ubl:schema:xsd:QualifiedDatatypes-2" xmlns:udt="urn:oasis:names:specification:ubl:schema:xsd:UnqualifiedDataTypes-2">
 \t<cbc:UBLVersionID>2.1</cbc:UBLVersionID>
 \t<cbc:CustomizationID>urn:cen.eu:en16931:2017</cbc:CustomizationID>
 \t<cbc:ProfileID>${profileId}</cbc:ProfileID>
 \t<cbc:ID>${numeroFacture}</cbc:ID>
 \t<cbc:IssueDate>${dateFacture}</cbc:IssueDate>
-\t<cbc:DueDate>${dateEcheance}</cbc:DueDate>
-\t<cbc:InvoiceTypeCode>${invoiceTypeCode}</cbc:InvoiceTypeCode>
+${!isCreditNote ? `\t<cbc:DueDate>${dateEcheance}</cbc:DueDate>\n` : ''}\t<cbc:${isCreditNote ? 'CreditNoteTypeCode' : 'InvoiceTypeCode'}>${invoiceTypeCode}</cbc:${isCreditNote ? 'CreditNoteTypeCode' : 'InvoiceTypeCode'}>
 ${notes.map(n => `\t<cbc:Note>${n}</cbc:Note>`).join('\n')}
 \t<cbc:DocumentCurrencyCode>EUR</cbc:DocumentCurrencyCode>
 \t<cbc:TaxCurrencyCode>EUR</cbc:TaxCurrencyCode>`,
 
-    // 2. Bloc Fournisseur
+    // 2. BillingReference AVEC LA DATE (Obligatoire pour les Avoirs)
+    getBillingReference: (originalInvoiceNumber, dateFactureXML) => `
+\t<cac:BillingReference>
+\t\t<cac:InvoiceDocumentReference>
+\t\t\t<cbc:ID>${originalInvoiceNumber}</cbc:ID>
+\t\t\t<cbc:IssueDate>${dateFactureXML}</cbc:IssueDate>
+\t\t</cac:InvoiceDocumentReference>
+\t</cac:BillingReference>`,
+
+    // 3. Bloc Fournisseur
     getSupplierParty: (supplier) => `
 \t<cac:AccountingSupplierParty>
 \t\t<cac:Party>
@@ -42,7 +56,7 @@ ${notes.map(n => `\t<cbc:Note>${n}</cbc:Note>`).join('\n')}
 \t\t</cac:Party>
 \t</cac:AccountingSupplierParty>`,
 
-    // 3. Bloc Acheteur
+    // 4. Bloc Acheteur
     getCustomerParty: (buyer) => `
 \t<cac:AccountingCustomerParty>
 \t\t<cac:Party>
@@ -66,7 +80,13 @@ ${notes.map(n => `\t<cbc:Note>${n}</cbc:Note>`).join('\n')}
 \t\t</cac:Party>
 \t</cac:AccountingCustomerParty>`,
 
-    // 4. Bloc PayeeParty (Tiers Payeur, Factor, Employé pour Notes de Frais)
+    // 4.5. Payment Terms (Ajouté)
+    getPaymentTerms: () => `
+\t<cac:PaymentTerms>
+\t\t<cbc:Note>Paiement a 30 jours</cbc:Note>
+\t</cac:PaymentTerms>`,
+
+    // 5. Bloc PayeeParty
     getPayeeParty: (id, name, siren) => `
 \t<cac:PayeeParty>
 \t\t<cac:PartyIdentification><cbc:ID schemeID="0009">${id}</cbc:ID></cac:PartyIdentification>
@@ -74,13 +94,13 @@ ${notes.map(n => `\t<cbc:Note>${n}</cbc:Note>`).join('\n')}
 \t\t<cac:PartyLegalEntity><cbc:CompanyID schemeID="0002">${siren}</cbc:CompanyID></cac:PartyLegalEntity>
 \t</cac:PayeeParty>`,
 
-    // 5. Bloc de paiement (PaymentMeans) pour les cas de cartes logées (Cas 7)
+    // 6. Bloc PaymentMeans
     getPaymentMeans: (code) => `
 \t<cac:PaymentMeans>
 \t\t<cbc:PaymentMeansCode>${code}</cbc:PaymentMeansCode>
 \t</cac:PaymentMeans>`,
 
-    // 6. Bloc TaxTotal
+    // 7. Blocs Totaux
     getTaxTotal: (taxableAmount, taxAmount, taxPercent = "20.00") => `
 \t<cac:TaxTotal>
 \t\t<cbc:TaxAmount currencyID="EUR">${taxAmount}</cbc:TaxAmount>
@@ -91,7 +111,6 @@ ${notes.map(n => `\t<cbc:Note>${n}</cbc:Note>`).join('\n')}
 \t\t</cac:TaxSubtotal>
 \t</cac:TaxTotal>`,
 
-    // 7. Bloc Totaux Monétaires (LegalMonetaryTotal) avec gestion des acomptes/prépayés
     getLegalMonetaryTotal: (lineExtAmt, taxExclusiveAmt, taxInclusiveAmt, prepaidAmt, payableAmt) => `
 \t<cac:LegalMonetaryTotal>
 \t\t<cbc:LineExtensionAmount currencyID="EUR">${lineExtAmt}</cbc:LineExtensionAmount>
@@ -100,18 +119,36 @@ ${notes.map(n => `\t<cbc:Note>${n}</cbc:Note>`).join('\n')}
 ${prepaidAmt !== "0.00" ? `\t\t<cbc:PrepaidAmount currencyID="EUR">${prepaidAmt}</cbc:PrepaidAmount>\n` : ""}\t\t<cbc:PayableAmount currencyID="EUR">${payableAmt}</cbc:PayableAmount>
 \t</cac:LegalMonetaryTotal>`,
 
-    // 8. Ligne de Facture (InvoiceLine)
-    getInvoiceLine: (id, qty, amount, itemName, price, orderRef = null) => `
-\t<cac:InvoiceLine>
+    // 8. Ligne de Facture / Avoir
+    getInvoiceLine: (id, qty, amount, itemName, price, isCreditNote = false, orderRef = null) => `
+\t<cac:${isCreditNote ? 'CreditNoteLine' : 'InvoiceLine'}>
 \t\t<cbc:ID>${id}</cbc:ID>
-\t\t<cbc:InvoicedQuantity unitCode="C62">${qty}</cbc:InvoicedQuantity>
+\t\t<cbc:${isCreditNote ? 'CreditedQuantity' : 'InvoicedQuantity'} unitCode="C62">${qty}</cbc:${isCreditNote ? 'CreditedQuantity' : 'InvoicedQuantity'}>
 \t\t<cbc:LineExtensionAmount currencyID="EUR">${amount}</cbc:LineExtensionAmount>
 ${orderRef ? `\t\t<cac:OrderLineReference><cbc:LineID>${orderRef.line}</cbc:LineID><cac:OrderReference><cbc:ID>${orderRef.id}</cbc:ID></cac:OrderReference></cac:OrderLineReference>\n` : ""}\t\t<cac:Item>
 \t\t\t<cbc:Name>${itemName}</cbc:Name>
 \t\t\t<cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID><cbc:Percent>20.00</cbc:Percent><cac:TaxScheme><cbc:ID>VAT</cbc:ID></cac:TaxScheme></cac:ClassifiedTaxCategory>
 \t\t</cac:Item>
 \t\t<cac:Price><cbc:PriceAmount currencyID="EUR">${price}</cbc:PriceAmount></cac:Price>
-\t</cac:InvoiceLine>`,
+\t</cac:${isCreditNote ? 'CreditNoteLine' : 'InvoiceLine'}>`,
 
-    getFooter: () => `\n</Invoice>`
+    getFooter: (isCreditNote = false) => `\n</${isCreditNote ? 'CreditNote' : 'Invoice'}>`,
+
+    // ========================================================================
+    // FORMATS CSV ESKER
+    // ========================================================================
+    
+    getPOHeadersCSV: () => `CompanyCode__,VendorNumber__,DifferentInvoicingParty__,OrderNumber__,OrderDate__,OrderedAmount__,DeliveredAmount__,InvoicedAmount__,Currency__,Buyer__,Receiver__,IsLocalPO__,IsCreatedInERP__,NoMoreInvoiceExpected__\n`,
+    
+    getPOHeadersRow: (poNumber, orderDateStr) => 
+        `"FR01","ESK0054",,"${poNumber}","${orderDateStr}",4934.70,4928.38,0,"EUR","buyerprocess","requesterprocess",,,\n`,
+
+    getPOItemsCSV: () => `CompanyCode__,VendorNumber__,OrderNumber__,ItemNumber__,PartNumber__,ItemType__,Description__,GLAccount__,Group__,CostCenter__,ProjectCode__,InternalOrder__,WBSElement__,WBSElementID__,FreeDimension1__,FreeDimension1ID__,BudgetID__,UnitPrice__,OrderedAmount__,UnitOfMeasureCode__,OrderedQuantity__,InvoicedAmount__,InvoicedQuantity__,DeliveredAmount__,DeliveredQuantity__,Currency__,TaxCode__,TaxRate__,NonDeductibleTaxRate__,Receiver__,CostType__,IsLocalPO__,IsCreatedInERP__,GRIV__,NoMoreInvoiceExpected__,NoGoodsReceipt__\n`,
+    
+    getPOItemsRow: (poNumber) => 
+        `"FR01","ESK0054","${poNumber}",1,"CNT01160",,"Hardware/Software - Imprimante Laser",607,,"3150",,,,,,,"<BudgetID>",0.38,0.38,,1,0,0,0.38,1,,"V4",,,,,,,,,\n` +
+        `"FR01","ESK0054","${poNumber}",2,"CNT31421",,"Fournitures de bureau - Papier A4",607,,"3150",,,,,,,"<BudgetID>",1.36,136,,100,0,0,136,100,,"V4",,,,,,,,,\n` +
+        `"FR01","ESK0054","${poNumber}",3,"CNT50922",,"Mobilier - Fauteuil ergonomique",607,,"3150",,,,,,,"<BudgetID>",6.32,1175.52,,186,0,0,1169.2,185,,"V4",,,,,,,,,\n` +
+        `"FR01","ESK0054","${poNumber}",10,"CNTUSB20",,"Clé USB 32Go Kingston",607,,"1450",,,,,,,"<BudgetID>",70.44,2113.2,,30,0,0,2113.2,30,,"V4",,,,,,,,,\n` +
+        `"FR01","ESK0054","${poNumber}",20,"CNT00443",,"Licence Office 365 Annuelle",6091,,"3400",,,,,,,"<BudgetID>",1.36,1509.6,,1110,0,0,1509.6,1110,,"V4",,,,,,,,,\n`
 };

@@ -1,5 +1,24 @@
 {
-  "0": {
+    
+  "A": {
+    "badge": "Cas A / Erreur",
+    "title": "Facture Rejetée (Erreur technique/métier)",
+    "desc1": "<strong>Scénario :</strong> La facture initiale est rejetée (par le PPF, la PDP ou l'Acheteur). Le fournisseur doit émettre une nouvelle facture ou un avoir.",
+    "desc2": "<strong>Pack généré :</strong> Fichier Master Data (CSV) + Facture initiale avec erreur + Avoir d'annulation (Credit Note 381).",
+    "info": "Génère une archive .ZIP contenant les Master Datas Esker, la facture 380 et l'avoir 381 lié.",
+    "target": "esker",
+    "label": "Cas A : Rejet et Annulation"
+  },
+  "B": {
+    "badge": "Cas B / Avoir",
+    "title": "Avoir Commercial",
+    "desc1": "<strong>Scénario :</strong> Annulation ou remboursement partiel/total d'une facture déjà émise et acceptée.",
+    "desc2": "<strong>Particularité XML :</strong> L'Avoir (CreditNote) doit impérativement contenir la balise <cac:BillingReference> pointant vers le numéro de la facture d'origine.",
+    "info": "Génère une archive .ZIP contenant la facture d'origine 380 et l'Avoir 381 (Credit Note) avec la référence croisée.",
+    "target": "esker",
+    "label": "Cas B : Émission d'un Avoir (Credit Note)"
+  },
+    "0": {
     "badge": "Cas A1 / Cas 0",
     "title": "Le Flux Domestique Standard",
     "desc1": "<strong>Scénario :</strong> C'est la facture de référence (B2B domestique). Le fournisseur ACME émet une facture simple à son client KREAMOB, sans commande préalable.",
