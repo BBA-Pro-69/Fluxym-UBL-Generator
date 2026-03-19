@@ -184,7 +184,7 @@ const UBLGenerator = {
                 zip.generateAsync({type:"blob"}).then(function(content) {
                     const url = window.URL.createObjectURL(content);
                     const a = document.createElement("a");
-                    const zipName = `Pack_${trigramme}_Cas${usecase}_${nomExplicatif}.zip`;
+                    const zipName = `Pack_${trigramme}_Cas${usecase}_${nomExplicatif}_${yyyy}${MM}${dd}_${HH}${mm}${ss}.zip`;
                     a.href = url;
                     a.download = zipName;
                     document.body.appendChild(a);
